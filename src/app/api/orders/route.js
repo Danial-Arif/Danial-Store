@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
-import connection from "../../../DB/route"
+import connectDB from "../../../DB/route"
 import Order from "../../../Schema/Orders/route"; 
 import User from "../../../Schema/Accounts/route"; 
 import { getServerSession } from "next-auth";
@@ -9,7 +9,7 @@ import { authOptions } from "../auth/[...nextauth]/route";
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 export async function POST(req) {
-  await connection();
+  await connectDB();
 
   try {
     const session = await getServerSession(authOptions);
@@ -37,7 +37,7 @@ export async function POST(req) {
 
 export async function GET() {
   console.log("GET /api/orders called");
-  await connection();
+  await connectDB();
 
   try {
     const session = await getServerSession(authOptions);

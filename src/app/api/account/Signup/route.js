@@ -1,9 +1,9 @@
-import connection from "../../../../DB/route";
+import connectDB from "../../../../DB/route";
 import User from "../../../../Schema/Accounts/route";
 import bcrypt from "bcryptjs";
 
 export async function POST(request) {
-  await connection();
+  await connectDB();
 
   try {
     const { name, email, password } = await request.json();

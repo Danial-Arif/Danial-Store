@@ -1,9 +1,9 @@
-import connection from "../../../../DB/route"
+import connectDB from "../../../../DB/route"
 import Product from "../../../../Schema/Product/route";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
-  await connection();
+  await connectDB();
   try {
     const data = await request.json();
     const newProduct = new Product(data);
@@ -15,7 +15,7 @@ export async function POST(request) {
 }
 
 export async function GET() {
-  await connection();
+  await connectDB();
   try {
     const products = await Product.find(); 
     return NextResponse.json(products, { status: 200 });

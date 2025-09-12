@@ -1,18 +1,20 @@
 import mongoose from "mongoose";
 
-const connection = async () => {
-  if (mongoose.connections[0].readyState) {
-    console.log("⚡ Already connected to MongoDB");
-    return;
-  }
+const connection = {}; // this keeps track of the connection
+
+async function connectDB() {   // rename the function
+  if (connection.isConnected) return;
+
+  const uri = process.env.MONGODB_URL;
+  if (!uri) throw new Error("MONGODB_URL is not defined");
 
   try {
-    await mongoose.connect(process.env.MONGODB_URL);
+    await mongoose.connect(uri);
+    connection.isConnected = true;
     console.log("✅ Connected to MongoDB Atlas");
-  } catch (error) {
-    console.error("❌ Error connecting to the database:", error);
-    throw error;
+  } catch (err) {
+    console.error("❌ Error connecting to MongoDB Atlas:", err);
   }
-};
+}
 
-export default connection;
+export default connectDB;

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import connection from "../../../../DB/route";
+import connectDB from "../../../../DB/route";
 import Product from "../../../../Schema/Product/route";
 
 export async function GET(req, { params }) {
-  await connection();
+  await connectDB();
   try {
     const product = await Product.findById(params.id);
     if (!product) {
@@ -17,7 +17,7 @@ export async function GET(req, { params }) {
 
 // UPDATE product
 export async function PUT(req, { params }) {
-  await connection();
+  await connectDB();
   try {
     const body = await req.json();
     const updated = await Product.findByIdAndUpdate(params.id, body, { new: true });
@@ -32,7 +32,7 @@ export async function PUT(req, { params }) {
 
 // DELETE product
 export async function DELETE(req, { params }) {
-  await connection();
+  await connectDB();
   try {
     const deleted = await Product.findByIdAndDelete(params.id);
     if (!deleted) {

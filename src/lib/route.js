@@ -2,7 +2,7 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
-import connection from "../DB/route";
+import connectDB from "../DB/route";
 import User from "../Schema/Accounts/route";
 
 export const authOptions = {
@@ -22,7 +22,7 @@ export const authOptions = {
         if (!credentials?.email || !credentials?.password) return null;
 
         try {
-          await connection();
+          await connectDB();
           const user = await User.findOne({ email: credentials.email });
           if (!user) return null;
 
