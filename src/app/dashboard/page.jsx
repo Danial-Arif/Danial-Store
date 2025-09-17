@@ -366,9 +366,9 @@ const Dashboard = () => {
     }
   };
 
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+      {/* Sidebar */}
       <nav className="w-full md:w-64 bg-white shadow-lg border-b md:border-r md:border-b-0">
         <div className="p-4 flex items-center justify-between md:block">
           <h2 className="text-xl font-bold text-gray-800">Dashboard</h2>
@@ -380,11 +380,11 @@ const Dashboard = () => {
           </button>
         </div>
 
-        {/* Nav items */}
+        {/* Nav items (always vertical on mobile) */}
         <ul
-          className={`flex-col space-y-1 px-3 md:flex md:space-y-1 ${
-            sidebarOpen ? "flex" : "hidden md:flex"
-          }`}
+          className={`flex flex-col space-y-1 px-3 ${
+            sidebarOpen ? "block" : "hidden"
+          } md:block`}
         >
           {navItems.map((item) => (
             <li key={item.id}>
@@ -407,7 +407,7 @@ const Dashboard = () => {
         </ul>
       </nav>
 
-     
+      {/* Main Content */}
       <main className="flex-1 overflow-auto p-4 md:p-8">{renderContent()}</main>
     </div>
   );
