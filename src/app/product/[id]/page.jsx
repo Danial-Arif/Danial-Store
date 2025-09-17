@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter} from "next/navigation";
-import { use } from "react"; 
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 
@@ -11,11 +10,12 @@ import Footer from "../../../../components/footer";
 import Copyright from "../../../../components/copyright";
 
 export default function ProductPage({ params }) {
-  const { id } = use(params); 
+  const { id } = params; // ✅ FIXED: don't use `use(params)`
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cart, setCart] = useState([]); // ✅ Added cart state
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -27,7 +27,7 @@ export default function ProductPage({ params }) {
         });
 
         if (!res.ok) {
-          router.push("/404"); 
+          router.push("/404");
           return;
         }
 
@@ -45,6 +45,11 @@ export default function ProductPage({ params }) {
 
   if (loading) return <p className="p-8">Loading...</p>;
   if (!product) return null;
+
+  const handleAddToCart = () => {
+    setCart((prev) => [...prev, product]); // ✅ Add product to cart
+    toast.success(`${product.name} added to cart`);
+  };
 
   const handleBuy = async () => {
     if (!session) {
@@ -78,7 +83,7 @@ export default function ProductPage({ params }) {
 
   return (
     <div>
-     <Navbar />
+      <Navbar />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row gap-8 h-auto md:min-h-[70vh]">
         {/* Image */}
@@ -103,7 +108,10 @@ export default function ProductPage({ params }) {
           </h2>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-4">
-            <button className="w-full sm:w-auto px-6 py-3 bg-gray-300 rounded-lg hover:bg-gray-400 transition">
+            <button
+              onClick={handleAddToCart} // ✅ Fixed syntax + logic
+              className="w-full sm:w-auto px-6 py-3 bg-gray-300 rounded-lg hover:bg-gray-400 transition"
+            >
               Add to Cart
             </button>
             <button
@@ -115,7 +123,7 @@ export default function ProductPage({ params }) {
           </div>
         </div>
       </div>
-      <Footer />   
+      <Footer />
       <Copyright />
     </div>
   );
