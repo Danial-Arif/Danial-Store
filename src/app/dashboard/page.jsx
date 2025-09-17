@@ -14,23 +14,23 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar toggle
 
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState("");
 
+  // === Fetch Orders ===
   const fetchOrders = async () => {
     try {
       setLoading(true);
       setError(null);
-
       const res = await fetch("/api/orders", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         cache: "no-store",
       });
-
       const data = await res.json();
       if (res.ok) {
         setOrders(Array.isArray(data) ? data : data.orders || []);
@@ -45,14 +45,13 @@ const Dashboard = () => {
     }
   };
 
+  // === Fetch Products ===
   const fetchProducts = async () => {
     try {
       setLoading(true);
       setError(null);
-
       const res = await fetch("/api/product/pro", { cache: "no-store" });
       const data = await res.json();
-
       if (res.ok) {
         setProducts(Array.isArray(data) ? data : data.products || []);
       } else {
@@ -66,9 +65,9 @@ const Dashboard = () => {
     }
   };
 
+  // === Add Product ===
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!name.trim()) return toast.error("Product name is required");
     if (!price || isNaN(price) || parseFloat(price) <= 0)
       return toast.error("Valid price is required");
@@ -85,7 +84,6 @@ const Dashboard = () => {
           image: image.trim(),
         }),
       });
-
       const data = await res.json();
       if (res.ok) {
         toast.success("Product added successfully");
@@ -105,59 +103,27 @@ const Dashboard = () => {
     }
   };
 
+  // === Delete Product ===
   const handleDeleteProduct = async (productId) => {
-    const userConfirmed = await new Promise((resolve) => {
-      const toastId = toast(
-        (t) => (
-          <div className="flex flex-col gap-2">
-            <span>Are you sure you want to delete this product?</span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  resolve(true);
-                  toast.dismiss(t.id);
-                }}
-                className="bg-red-500 text-white px-3 py-1 rounded"
-              >
-                Delete
-              </button>
-              <button
-                onClick={() => {
-                  resolve(false);
-                  toast.dismiss(t.id);
-                }}
-                className="bg-gray-300 px-3 py-1 rounded"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        ),
-        { duration: Infinity }
-      );
-    });
-  
-    if (!userConfirmed) return;
-  
     try {
       const res = await fetch(`/api/product/${productId}`, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
       });
-  
+      const data = await res.json();
       if (res.ok) {
         toast.success("Product deleted successfully");
         setProducts((prev) => prev.filter((p) => p._id !== productId));
       } else {
-        const errorData = await res.json();
-        toast.error("Failed to delete product");
+        toast.error(data.error || "Failed to delete product");
       }
     } catch (err) {
       console.error("Delete product error:", err);
       toast.error("Error deleting product");
     }
   };
-  
 
+  // === Hooks ===
   useEffect(() => {
     if (status === "loading") return;
     if (status === "unauthenticated") {
@@ -179,9 +145,9 @@ const Dashboard = () => {
       </div>
     );
   }
-
   if (status !== "authenticated") return null;
 
+  // === Navigation Items ===
   const navItems = [
     { id: "account", label: "Account", icon: "⚙️" },
     { id: "orders", label: "Orders", icon: "📦" },
@@ -190,9 +156,10 @@ const Dashboard = () => {
     { id: "analytics", label: "Analytics", icon: "📊" },
   ];
 
+  // === Product Card ===
   const ProductCard = ({ product }) => (
     <div className="bg-white p-4 rounded-lg shadow-md border hover:shadow-lg transition-shadow">
-      <div className="w-full h-48 bg-gray-200 rounded mb-3 overflow-hidden">
+      <div className="w-full h-40 sm:h-48 bg-gray-200 rounded mb-3 overflow-hidden">
         {product.image ? (
           <img
             src={product.image}
@@ -213,19 +180,20 @@ const Dashboard = () => {
       </p>
       <div className="flex justify-between items-center">
         <p className="text-orange-600 font-semibold text-lg">
-          $
-          {typeof product.price === "number"
-            ? product.price.toFixed(2)
-            : "0.00"}
+          ${typeof product.price === "number" ? product.price.toFixed(2) : "0.00"}
         </p>
       </div>
       <div className="mt-3 flex gap-2">
-        <button className="flex-1 bg-blue-500 text-white py-1 px-3 rounded text-sm hover:bg-blue-600 transition-colors">
+        <button
+          type="button"
+          className="flex-1 bg-blue-500 text-white py-1 px-3 rounded text-sm hover:bg-blue-600"
+        >
           Edit
         </button>
         <button
+          type="button"
           onClick={() => handleDeleteProduct(product._id)}
-          className="flex-1 bg-red-500 text-white py-1 px-3 rounded text-sm hover:bg-red-600 transition-colors"
+          className="flex-1 bg-red-500 text-white py-1 px-3 rounded text-sm hover:bg-red-600"
         >
           Delete
         </button>
@@ -233,12 +201,15 @@ const Dashboard = () => {
     </div>
   );
 
+  // === Render Content ===
   const renderContent = () => {
     switch (activeTab) {
       case "account":
         return (
-          <div className="p-8">
-            <h1 className="text-3xl font-bold mb-6 text-gray-800">Account</h1>
+          <div className="p-4 md:p-8">
+            <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">
+              Account
+            </h1>
             <div className="bg-white p-6 rounded-lg shadow-md border max-w-md">
               <div className="flex items-center gap-4 mb-4">
                 <img
@@ -253,7 +224,7 @@ const Dashboard = () => {
               </div>
               <button
                 onClick={() => signOut({ callbackUrl: "/login" })}
-                className="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
+                className="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600"
               >
                 Logout
               </button>
@@ -263,18 +234,20 @@ const Dashboard = () => {
 
       case "orders":
         return (
-          <div className="p-8">
-            <h1 className="text-3xl font-bold mb-6 text-gray-800">Orders</h1>
+          <div className="p-4 md:p-8">
+            <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">
+              Orders
+            </h1>
             {loading && <p>Loading orders...</p>}
             {!loading && error && orders.length === 0 && (
               <p className="text-red-600">{error}</p>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {orders.length > 0 ? (
                 orders.map((order) => (
                   <div
                     key={order._id}
-                    className="bg-white p-6 rounded-lg shadow-md border"
+                    className="bg-white p-4 rounded-lg shadow-md border"
                   >
                     <h3 className="font-semibold text-lg mb-2">
                       Order #{order._id?.slice(-6)}
@@ -293,19 +266,21 @@ const Dashboard = () => {
 
       case "products":
         return (
-          <div className="p-8">
-            <h1 className="text-3xl font-bold mb-6 text-gray-800">Products</h1>
+          <div className="p-4 md:p-8">
+            <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">
+              Products
+            </h1>
             {loading && <p>Loading products...</p>}
             {!loading && error && products.length === 0 && (
               <p className="text-red-600">{error}</p>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.length > 0 ? (
                 products.map((product) => (
-                  <ProductCard key={product._id} product={product} />
+                  <ProductCard key={product._id || Math.random()} product={product} />
                 ))
               ) : (
-                <p>No products found.</p>
+                !loading && <p>No products found.</p>
               )}
             </div>
           </div>
@@ -313,8 +288,8 @@ const Dashboard = () => {
 
       case "add-product":
         return (
-          <div className="p-8">
-            <h1 className="text-3xl font-bold mb-6 text-gray-800">
+          <div className="p-4 md:p-8">
+            <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">
               Add a Product
             </h1>
             <form
@@ -365,9 +340,11 @@ const Dashboard = () => {
 
       case "analytics":
         return (
-          <div className="p-8">
-            <h1 className="text-3xl font-bold mb-6 text-gray-800">Analytics</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-4 md:p-8">
+            <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">
+              Analytics
+            </h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="bg-white p-6 rounded-lg shadow-md border">
                 <h3 className="text-lg font-semibold mb-2">Total Products</h3>
                 <p className="text-2xl font-bold text-orange-600">
@@ -385,25 +362,40 @@ const Dashboard = () => {
         );
 
       default:
-        return <div className="p-8">Select a menu item</div>;
+        return <div className="p-4 md:p-8">Select a menu item</div>;
     }
   };
 
+
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <nav className="w-64 bg-white shadow-lg border-r flex flex-col">
-        <div className="p-6">
+    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+      <nav className="w-full md:w-64 bg-white shadow-lg border-b md:border-r md:border-b-0">
+        <div className="p-4 flex items-center justify-between md:block">
           <h2 className="text-xl font-bold text-gray-800">Dashboard</h2>
+          <button
+            className="md:hidden text-gray-600"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            {sidebarOpen ? "✕" : "☰"}
+          </button>
         </div>
-        <ul className="space-y-1 px-3 flex-1">
+
+        {/* Nav items */}
+        <ul
+          className={`flex-col space-y-1 px-3 md:flex md:space-y-1 ${
+            sidebarOpen ? "flex" : "hidden md:flex"
+          }`}
+        >
           {navItems.map((item) => (
             <li key={item.id}>
               <button
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  setSidebarOpen(false);
+                }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left ${
                   activeTab === item.id
-                    ? "bg-orange-50 text-orange-600 border-r-4 border-orange-500"
+                    ? "bg-orange-50 text-orange-600 border-l-4 md:border-l-0 md:border-r-4 border-orange-500"
                     : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
@@ -415,7 +407,8 @@ const Dashboard = () => {
         </ul>
       </nav>
 
-      <main className="flex-1 overflow-auto">{renderContent()}</main>
+     
+      <main className="flex-1 overflow-auto p-4 md:p-8">{renderContent()}</main>
     </div>
   );
 };
